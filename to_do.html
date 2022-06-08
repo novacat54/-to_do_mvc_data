@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+li {
+  display:flex;
+  width: 540px;
+}
+
+ul {
+    display: block;
+    list-style-type: disc;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    padding-inline-start: 40px;
+}
+
+div {
+  display: block;
+}
+
+checkbox {
+  display:flex;
+  justify-content: start;
+}
+
+button {
+  width: 10px;
+  height: 15px;
+}
+
+#clear-completed {
+  width: 240px;
+  height: 20px;
+}
+</style>
+</head>
+
+<body>
+<input id="category" placeholder="What needs to be done?">
+<ul id="items-list">
+
+</ul>
+
+<footer class="footer">
+  <button id="clear-completed" style = 'display: none;'>
+    Clear Completed
+  </button>
+  <ul id = "filters" style = 'display: none;'>
+    <li>
+      <a href="#/" id = 'all'>All</a>
+    </li>
+    <li>
+      <a href="#/active" id='active'>Active</a>
+    </li>
+    <li>
+      <a href="#/completed" id='completed'>Completed</a>
+    </li>
+  </ul>
+  
+</footer>
+<script src="script.js" type="text/javascript"></script>
+
+</body>
+
+</html>
