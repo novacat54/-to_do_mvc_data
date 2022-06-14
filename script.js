@@ -6,13 +6,15 @@ const allItemsButton = document.querySelector('#all');
 const activeItemsButton = document.querySelector('#active');
 const completedItemsButton = document.querySelector('#completed');
 let state = "ALL";
-//listElement.children.length
-//to move completed -- to checked/unchecked
-//classname hidden (no need)
-//css with react
 
-const data = [];
-let id = 0;
+window.addEventListener('load', (event) => {
+  if(window.localStorage.getItem(`toDo`)){
+    renderList();
+  }
+});
+
+const data = window.localStorage.getItem(`toDo`) ? JSON.parse(window.localStorage.getItem(`toDo`)) : [];
+let id = window.localStorage.getItem(`toDo`) ? data[data.length-1].id + 1 : 0;
 const newRecord = (value) => {
   return {
     'id': id,
@@ -21,8 +23,13 @@ const newRecord = (value) => {
   };
 };
 
+const setDataToLocalStorage = () => {
+  window.localStorage.setItem('toDo', JSON.stringify(data));
+}
+
 const addNewRecordToData = (newRecord) => {
   data.push(newRecord);
+  setDataToLocalStorage();
 }
 
 const renderList = () => {
@@ -78,9 +85,6 @@ const showFilters = () => {
   data.length == 0 ? filters.style.display = 'none' : filters.style.display = 'block';
 }
 
-const createInput = () => {
-
-}
 
 inputElement.addEventListener('keypress', (event) => {
   if (event.keyCode == 13 && event.target.value != '') {
@@ -96,6 +100,7 @@ listElement.addEventListener('click', (event) => {
     let elementID = event.target.parentNode.parentNode.getAttribute('id').slice(10);
     let obj = data.find(item => item.id == elementID);
     obj.selected ? obj.selected = false : obj.selected = true;
+    setDataToLocalStorage();
     renderList();
   }
 })
@@ -106,6 +111,7 @@ listElement.addEventListener('click', (event) => {
     let obj = data.find(item => item.id == elementID);
     let indexOfElementToRemove = data.indexOf(obj);
     data.splice(indexOfElementToRemove, 1);
+    setDataToLocalStorage();
     renderList();
   }
 })
@@ -117,6 +123,7 @@ clearCompletedButton.addEventListener('click', () => {
       i--;
     }
   }
+  setDataToLocalStorage();
   renderList();
 })
 
@@ -156,18 +163,7 @@ listElement.addEventListener('dblclick', (event) => {
 const saveToDataAndRender = (event) => {
   if (event.target.parentNode) {
     data.find(item => "list-item-" + item.id == event.target.parentNode.parentNode.parentNode.id).value = event.target.value;
+    setDataToLocalStorage();
     renderList();
   }
 };
-
-// ------------------------------------------------------
-// const data = [{object},{object}];
-
-// object ={
-//   selected: boolean;
-//   value: string;
-//   id: number;
-// }
-// render function 
-// create input
-// create li
