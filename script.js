@@ -5,8 +5,7 @@ const filters = document.querySelector('#filters');
 const allItemsButton = document.querySelector('#all');
 const activeItemsButton = document.querySelector('#active');
 const completedItemsButton = document.querySelector('#completed');
-let completed = 0;
-let filter_items = 0;
+let state = "ALL";
 //listElement.children.length
 //to move completed -- to checked/unchecked
 //classname hidden (no need)
@@ -14,92 +13,130 @@ let filter_items = 0;
 
 const data = [];
 let id = 0;
-
-let newInput = (value) => {
-    return {
-    'selected': false,
+const newRecord = (value) => {
+  return {
+    'id': id,
     'value': value,
-    "id": id
+    'selected': false
+  };
 };
+
+const addNewRecordToData = (newRecord) => {
+  data.push(newRecord);
 }
 
-let addInputToData = (Object) => {
-    data.push(Object);
+const renderList = () => {
+  listElement.innerHTML = null;
+  switch (state) {
+    case 'ALL':
+      for (let i = 0; i < data.length; i++) {
+        createLi(data[i]);
+      }
+      break;
+
+    case 'COMPLETED':
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].selected) {
+          createLi(data[i]);
+        }
+      }
+      break;
+
+    case 'ACTIVE':
+      for (let i = 0; i < data.length; i++) {
+        if (!data[i].selected) {
+          createLi(data[i]);
+        }
+      }
+      break;
+  }
+  showClearCompleted();
+  showFilters();
 }
 
-let showClearCompleted = () => {
-    let isSeledtedElements = data.find(item => item.selected);
-    isSeledtedElements ? clearCompletedButton.style.display = 'block' : clearCompletedButton.style.display = 'none';
+const createLi = (obj) => {
+  const li = document.createElement('li');
+  li.setAttribute('id', `list-item-${obj.id}`);
+  listElement.appendChild(li);
+  let checked = 'checked';
+  obj.selected ? checked : checked = '';
+  li.innerHTML = `
+    <div>
+      <input type='checkbox' class='completed-checkbox' ${checked}></input>
+      <label>${obj.value}</label>
+      <button class='destroy'></button>
+    </div>  
+    `;
+};
+
+const showClearCompleted = () => {
+  let isSeledtedElements = data.some(item => item.selected);
+  isSeledtedElements ? clearCompletedButton.style.display = 'block' : clearCompletedButton.style.display = 'none';
 }
 
-let createLi = (Object) => {
-    const li = document.createElement('li');
-    li.setAttribute('id', `list-item-${id}`);
-    listElement.appendChild(li);
-    const div = document.createElement('div');
-    li.appendChild(div);
-    const input = document.createElement('input');
-    input.type = "checkbox";
-    input.className = "completed-checkbox";
-    div.appendChild(input);
-    const label = document.createElement('label');
-    div.appendChild(label);
-    label.innerHTML = Object.value;
-    const destroyButton = document.createElement('button');
-    destroyButton.className = "destroy";
-    div.appendChild(destroyButton);
+const showFilters = () => {
+  data.length == 0 ? filters.style.display = 'none' : filters.style.display = 'block';
+}
+
+const createInput = () => {
+
 }
 
 inputElement.addEventListener('keypress', (event) => {
-    if (event.keyCode == 13 && event.target.value != '') {
-        let newItem = newInput(event.target.value);
-        addInputToData(newItem);
-        createLi(newItem);
-        id++;
-        inputElement.value = null;
-        filters.style.display = 'block';
-        filter_items ++;
-    }
-  })
-
-
-listElement.addEventListener('click', (event) => {
-   if (event.target.tagName == 'BUTTON'){
-        let itemValue = event.target.parentNode.children[1].innerText;
-        let itemClicked = data.find(item => item.value == itemValue);
-        document.querySelector(`#list-item-${itemClicked.id}`).remove();
-        let indexOfElementToRemove = data.indexOf(itemClicked);
-        data.splice(indexOfElementToRemove, 1);
-        showClearCompleted();
-        showFilter();
-   }
-
-    
-})
-
-listElement.addEventListener('click', (event) => {
-  if (event.target.className == 'completed-checkbox'){
-        let itemValue = event.target.parentNode.children[1].innerText;
-        let itemClicked = data.find(item => item.value == itemValue);
-        itemClicked.selected ? itemClicked.selected = false : itemClicked.selected = true;
-        showClearCompleted();
+  if (event.keyCode == 13 && event.target.value != '') {
+    addNewRecordToData(newRecord(event.target.value));
+    id++;
+    event.target.value = null;
+    renderList();
   }
 })
 
-clearCompletedButton.addEventListener('click', (event) => {
-    for (let i=0; i<data.length; i++){
-        if (data[i].selected){
-            document.querySelector(`#list-item-${data[i].id}`).remove();
-            data.splice(i,1);
-            i--;
-        }
+listElement.addEventListener('click', (event) => {
+  if (event.target.className == 'completed-checkbox') {
+    let elementID = event.target.parentNode.parentNode.getAttribute('id').slice(10);
+    let obj = data.find(item => item.id == elementID);
+    obj.selected ? obj.selected = false : obj.selected = true;
+    renderList();
+  }
+})
+
+listElement.addEventListener('click', (event) => {
+  if (event.target.tagName == 'BUTTON') {
+    let elementID = event.target.parentNode.parentNode.getAttribute('id').slice(10);
+    let obj = data.find(item => item.id == elementID);
+    let indexOfElementToRemove = data.indexOf(obj);
+    data.splice(indexOfElementToRemove, 1);
+    renderList();
+  }
+})
+
+clearCompletedButton.addEventListener('click', () => {
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].selected) {
+      data.splice(i, 1);
+      i--;
     }
-      clearCompletedButton.style.display = 'none';
-      showFilter();
+  }
+  renderList();
+})
+
+allItemsButton.addEventListener('click', () => {
+  state = "ALL";
+  renderList();
+})
+
+activeItemsButton.addEventListener('click', (event) => {
+  state = "ACTIVE";
+  renderList();
+})
+
+completedItemsButton.addEventListener('click', (event) => {
+  state = "COMPLETED";
+  renderList();
 })
 
 listElement.addEventListener('dblclick', (event) => {
-  if (event.target.tagName == 'LABEL'){
+  if (event.target.tagName == 'LABEL') {
     const input = document.createElement('input');
     input.id = "temporary-input";
     const text = event.target.innerText;
@@ -112,39 +149,16 @@ listElement.addEventListener('dblclick', (event) => {
         event.target.blur();
       }
     })
-    input.addEventListener('blur', saveToParentAndRemove);
+    input.addEventListener('blur', saveToDataAndRender);
   }
 })
 
-allItemsButton.addEventListener('click', (event) => {
-    Array.from(listElement.children).forEach(element => element.style.display = 'block');
-})
-
-activeItemsButton.addEventListener('click', (event) => {
-    for (let item of data){
-        item.selected ? document.querySelector(`#list-item-${item.id}`).style.display = 'none' : document.querySelector(`#list-item-${item.id}`).style.display = 'block';
-    }
-})
-
-completedItemsButton.addEventListener('click', (event) => {
-    for (let item of data){
-        item.selected ? document.querySelector(`#list-item-${item.id}`).style.display = 'block' : document.querySelector(`#list-item-${item.id}`).style.display = 'none';
-    }
-})
-
-const saveToParentAndRemove = (event) => {
-  if (event.target.parentNode){
-    data.find(item => "list-item-"+item.id == event.target.parentNode.parentNode.parentNode.id).value = event.target.value;
-    event.target.parentNode.innerHTML = event.target.value;
-    event.target.remove();
+const saveToDataAndRender = (event) => {
+  if (event.target.parentNode) {
+    data.find(item => "list-item-" + item.id == event.target.parentNode.parentNode.parentNode.id).value = event.target.value;
+    renderList();
   }
 };
-
-let showFilter = () => {
-  if(data.length == 0){
-    filters.style.display = 'none';
-  }
-}
 
 // ------------------------------------------------------
 // const data = [{object},{object}];
